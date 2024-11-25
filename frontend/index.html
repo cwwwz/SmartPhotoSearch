@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoSearchApp</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>AI Photo Search App</h1>
+        <p>Upload and Search Photos with AI-powered Precision</p>
+    </header>
+    
+    <main>
+        <section id="upload">
+            <h2>Upload a Photo</h2>
+            <form id="uploadForm">
+                <input type="file" id="photoInput" accept="image/*" required>
+                <input type="text" id="customLabels" placeholder="Enter custom labels (comma-separated)">
+                <button type="submit">Upload</button>
+            </form>
+        </section>
+
+        <section id="search">
+            <h2>Search Photos</h2>
+            <form id="searchForm">
+                <input type="text" id="searchQuery" placeholder="Enter keywords" required>
+                <button type="submit">Search</button>
+            </form>
+            <div id="results"></div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
