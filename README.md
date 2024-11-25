@@ -1,1 +1,65 @@
-# SmartPhotoSearch
+# PhotoSearchApp
+
+**PhotoSearchApp** is a serverless application designed to enable users to upload photos, perform keyword-based searches, and retrieve relevant images based on labels detected through AI-powered processing. This project integrates various AWS services to provide a scalable, efficient, and automated solution for photo storage, indexing, and search.
+
+---
+
+## Features
+
+- **Photo Upload**: Users can upload photos to an S3 bucket.
+- **AI Label Detection**: AWS Rekognition analyzes uploaded photos to detect labels.
+- **Custom Metadata**: Users can optionally provide custom labels when uploading photos.
+- **Photo Search**: Users can search for photos by keywords. The search combines user-provided labels and Rekognition-detected labels to match results.
+- **Search Results**: Photos matching the search criteria are retrieved from the S3 bucket and displayed.
+
+---
+
+## AWS Services Used
+
+1. **Amazon S3**  
+   - Stores uploaded photos and manages object metadata for custom labels.
+   - Triggers the **Index Photos** Lambda function upon new uploads.
+
+2. **AWS Rekognition**  
+   - Detects labels for photos uploaded to S3 using image recognition.
+
+3. **AWS Lambda**  
+   - **Index Photos**: Processes new photo uploads, combines Rekognition-detected and custom labels, and indexes photo metadata into OpenSearch.
+   - **Search Photos**: Handles user search queries, integrates with Lex for keyword disambiguation, and retrieves matching photo metadata from OpenSearch.
+
+4. **Amazon Lex**  
+   - Disambiguates user search queries using natural language processing to extract keywords.
+
+5. **Amazon OpenSearch**  
+   - Indexes and stores metadata for uploaded photos, including labels and timestamps.
+   - Performs full-text search to find relevant photos based on keywords.
+
+6. **Amazon API Gateway**  
+   - Exposes a REST API for photo upload and search functionality.
+   - Integrates with Lambda functions for serverless API execution.
+
+7. **CloudWatch Logs**  
+   - Monitors and logs the execution of Lambda functions and API Gateway requests for debugging and performance analysis.
+
+---
+
+## How It Works
+
+1. **Photo Upload**
+   - A user uploads a photo to the S3 bucket via the `/upload` API endpoint.
+   - S3 triggers the **Index Photos** Lambda function to process the photo.
+
+2. **Photo Indexing**
+   - **Index Photos** Lambda retrieves Rekognition-detected labels and custom labels from S3 metadata.
+   - The Lambda function combines, deduplicates, and indexes the photo metadata into OpenSearch.
+
+3. **Photo Search**
+   - A user submits a search query via the `/search` API endpoint.
+   - The query is sent to the **Search Photos** Lambda function.
+   - The Lambda function uses Lex to disambiguate the query and extract keywords.
+   - The keywords are used to search OpenSearch for matching photo metadata.
+   - Matching photo results are returned to the user.
+
+---
+
+This project demonstrates how to build a serverless, AI-driven photo search application using AWS cloud services.
