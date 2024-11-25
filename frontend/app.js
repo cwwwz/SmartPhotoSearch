@@ -1,38 +1,25 @@
-// Base URL for the API Gateway
-const BASE_URL = "https://ewpydj27fe.execute-api.us-east-1.amazonaws.com/dev";
+// Initialize the API Gateway client
+const apigClient = apigClientFactory.newClient({
+    apiKey: "lg7EhEXNLK5FGLg0mXw8W2nP0sbIp6bTa2GrX0Zo", 
+  });  
 
 // Function to search for photos based on a query
 async function searchPhotos(query) {
   try {
-    console.log("Starting searchPhotos function...");
     if (!query) {
       console.warn("No search query provided.");
       alert("Please enter a search query!");
       return;
     }
 
-    // Construct the search URL
-    const url = `${BASE_URL}/search?q=${encodeURIComponent(query)}`;
-    console.log(`Search URL constructed: ${url}`);
-    
-    // Perform the GET request
-    console.log("Sending GET request to the API...");
-    const response = await fetch(url);
-    console.log(`Received response: ${response.status} - ${response.statusText}`);
+    const params = { q: query };
+    const additionalParams = {};
+    const response = await apigClient.searchGet(params, null, additionalParams);
 
-    // Check if the response is successful
-    if (!response.ok) {
-      console.error("Failed response from API:", response);
-      throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
-
-    // Parse the JSON response
-    console.log("Parsing response JSON...");
-    const data = await response.json();
-    console.log("Search results received:", data);
+    console.log("Search results received:", response.data);
 
     // Handle search results
-    displaySearchResults(data.results);
+    displaySearchResults(response.data.results);
   } catch (error) {
     console.error("Error during photo search:", error);
     alert("An error occurred while searching for photos. Please try again.");
@@ -41,11 +28,10 @@ async function searchPhotos(query) {
 
 // Function to display search results
 function displaySearchResults(results) {
-  console.log("Starting displaySearchResults function...");
   const resultsContainer = document.getElementById("results");
   resultsContainer.innerHTML = ""; // Clear previous results
 
-  if (results.length === 0) {
+  if (!results || results.length === 0) {
     console.warn("No photos found for the given query.");
     resultsContainer.innerHTML = "<p>No photos found for the query.</p>";
     return;
@@ -75,7 +61,6 @@ function displaySearchResults(results) {
 // Function to upload a photo
 async function uploadPhoto(file) {
   try {
-    console.log("Starting uploadPhoto function...");
     if (!file) {
       console.warn("No photo selected for upload.");
       alert("Please select a photo to upload!");
@@ -85,27 +70,20 @@ async function uploadPhoto(file) {
     // Fetch custom labels
     const customLabels = document.getElementById("customLabels").value;
 
-    // Create a FormData object for multi-part upload
+    // Prepare request headers and body
+    const additionalParams = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "x-amz-meta-customLabels": customLabels,
+      },
+    };
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("customLabels", customLabels);
-    console.log("FormData prepared for upload with custom labels:", customLabels);
 
-    // Perform the PUT request
-    console.log("Sending PUT request to the API...");
-    const response = await fetch(`${BASE_URL}/upload`, {
-      method: "PUT",
-      body: formData,
-    });
-    console.log(`Received response: ${response.status} - ${response.statusText}`);
+    const response = await apigClient.uploadPut({}, formData, additionalParams);
 
-    // Check if the response is successful
-    if (!response.ok) {
-      console.error("Failed response from API:", response);
-      throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
-
-    console.log("Photo uploaded successfully!");
+    console.log("Photo uploaded successfully:", response.data);
     alert("Photo uploaded successfully!");
   } catch (error) {
     console.error("Error during photo upload:", error);
@@ -114,7 +92,6 @@ async function uploadPhoto(file) {
 }
 
 // Validate DOM elements on page load
-console.log("Validating DOM elements...");
 const uploadForm = document.getElementById("uploadForm");
 const photoInput = document.getElementById("photoInput");
 const customLabelsInput = document.getElementById("customLabels");
@@ -143,3 +120,5 @@ document.getElementById("uploadForm").addEventListener("submit", event => {
   console.log(`Upload form submitted with file: ${file?.name}`);
   uploadPhoto(file);
 });
+
+
