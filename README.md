@@ -62,4 +62,6 @@
 
 ---
 
-This project demonstrates how to build a serverless, AI-driven photo search application using AWS cloud services.
+![1341732510947_ pic](https://github.com/user-attachments/assets/7c763455-6b8c-4abb-8e86-d216456a766a)
+
+
