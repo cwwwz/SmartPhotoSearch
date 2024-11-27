@@ -85,35 +85,43 @@ function displaySearchResults(results) {
   });
 }
 
-// Function to upload a photo
-async function uploadPhoto(file) {
-  try {
-    if (!file) {
-      console.warn("No photo selected for upload.");
-      alert("Please select a photo to upload!");
+async function uploadPhoto() {
+  const file = document.getElementById('photoInput').files[0];
+  if (!file) {
+      alert("Please select a file to upload.");
       return;
+  }
+
+  const customLabelsInput = document.getElementById('customLabels').value;
+  const customLabels = customLabelsInput.split(',')
+      .map(label => label.trim())
+      .filter(label => label.length > 0)
+      .join(',');
+
+  console.log("Custom labels:", customLabels);
+
+  const headers = {
+      'Content-Type': file.type || "application/octet-stream", // Fallback to binary
+      'x-amz-meta-customLabels': customLabels, // Custom metadata
+  };
+
+  // Prepare the S3 URL (adjust this to match your bucket structure)
+  const bucketUrl = `https://cc-hw2-photo-bucket.s3.amazonaws.com/${file.name}`;
+
+  try {
+    // Send PUT request to S3
+    const response = await axios.put(bucketUrl, file, { headers });
+    if (response.status === 200) {
+      alert("Photo uploaded successfully!");
+      console.log("S3 Response:", response.data);
+    } else {
+      console.error("Failed to upload photo:", response.status, response.data);
     }
-
-    // Fetch custom labels
-    const customLabels = document.getElementById("customLabels").value;
-
-    const additionalParams = {
-      headers: {
-        "Content-Type": "application/octet-stream", // S3 expects binary content
-        "x-amz-meta-customLabels": customLabels,
-      },
-    };
-    
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await apigClient.uploadPut({}, formData, additionalParams);
-
-    console.log("Photo uploaded successfully:", response.data);
-    alert("Photo uploaded successfully!");
   } catch (error) {
     console.error("Error during photo upload:", error);
-    alert("An error occurred while uploading the photo. Please try again.");
+    alert("Failed to upload photo. See console for details.");
+  } finally {
+    uploadForm.reset();
   }
 }
 

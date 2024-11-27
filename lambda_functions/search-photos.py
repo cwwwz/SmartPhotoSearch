@@ -99,38 +99,46 @@ def generate_presigned_url(bucket_name, object_key):
 
 def search_photos_in_opensearch(labels):
     """
-    Searches the OpenSearch index for photos using the extracted labels.
+    Searches the OpenSearch index for photos that contain all the provided labels.
     """
     results = []
-    for label in labels:
-        search_body = {
-            "query": {
-                "match": {
-                    "labels": label
-                }
+    
+    if not labels:
+        return results
+
+    # Create a boolean query to match all labels
+    must_clauses = [{"match": {"labels": label}} for label in labels]
+    search_body = {
+        "query": {
+            "bool": {
+                "must": must_clauses
             }
         }
-        try:
-            response = requests.post(
-                f"{OPENSEARCH_ENDPOINT}/photos/_search",
-                auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
-                headers={"Content-Type": "application/json"},
-                json=search_body
-            )
-            if response.status_code == 200:
-                search_data = response.json()
-                for hit in search_data.get("hits", {}).get("hits", []):
-                    object_key = hit['_source']['objectKey']
-                    bucket_name = "cc-hw2-photo-bucket"
-                    presigned_url = generate_presigned_url(bucket_name, object_key)
-                    if presigned_url:
-                        results.append({
-                            "url": presigned_url,
-                            "labels": hit['_source'].get('labels', [])
-                        })
-            else:
-                logger.error("OpenSearch query failed: %s", response.text)
-        except Exception as e:
-            logger.error("Error querying OpenSearch: %s", str(e))
-    return results
+    }
 
+    try:
+        # Perform the OpenSearch query
+        response = requests.post(
+            f"{OPENSEARCH_ENDPOINT}/photos/_search",
+            auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
+            headers={"Content-Type": "application/json"},
+            json=search_body
+        )
+        
+        if response.status_code == 200:
+            search_data = response.json()
+            for hit in search_data.get("hits", {}).get("hits", []):
+                object_key = hit['_source']['objectKey']
+                bucket_name = "cc-hw2-photo-bucket"
+                presigned_url = generate_presigned_url(bucket_name, object_key)
+                if presigned_url:
+                    results.append({
+                        "url": presigned_url,
+                        "labels": hit['_source'].get('labels', [])
+                    })
+        else:
+            logger.error("OpenSearch query failed: %s", response.text)
+    except Exception as e:
+        logger.error("Error querying OpenSearch: %s", str(e))
+    
+    return results
