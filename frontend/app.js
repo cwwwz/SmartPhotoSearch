@@ -97,14 +97,13 @@ async function uploadPhoto(file) {
     // Fetch custom labels
     const customLabels = document.getElementById("customLabels").value;
 
-    // Prepare request headers and body
     const additionalParams = {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/octet-stream", // S3 expects binary content
         "x-amz-meta-customLabels": customLabels,
       },
     };
-
+    
     const formData = new FormData();
     formData.append("file", file);
 
