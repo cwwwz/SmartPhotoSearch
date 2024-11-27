@@ -17,10 +17,23 @@ async function searchPhotos(query) {
     const additionalParams = {};
     const response = await apigClient.searchGet(params, null, additionalParams);
 
-    console.log("Search results received:", response.data);
+    console.log("Search results received:", response);
 
-    // Handle search results
-    displaySearchResults(response.data.results);
+    // Parse the body if it's a string
+    let responseBody = response.data.body;
+    if (typeof responseBody === "string") {
+      responseBody = JSON.parse(responseBody); // Parse the JSON string
+    }
+
+    console.log("Parsed response body:", responseBody);
+
+    // Check if results exist
+    if (responseBody.results && responseBody.results.length > 0) {
+      displaySearchResults(responseBody.results); // Call the display function
+    } else {
+      console.warn("No results found in API response:", responseBody);
+      alert("No photos found for the given query.");
+    }
   } catch (error) {
     console.error("Error during photo search:", error);
     alert("An error occurred while searching for photos. Please try again.");
@@ -29,32 +42,46 @@ async function searchPhotos(query) {
 
 function displaySearchResults(results) {
   const resultsContainer = document.getElementById("results");
-  resultsContainer.innerHTML = ""; // Clear previous results
 
-  if (results.length === 0) {
-      console.warn("No photos found for the given query.");
-      resultsContainer.innerHTML = "<p>No photos found for the query.</p>";
-      return;
+  // Clear any previous results
+  resultsContainer.innerHTML = "";
+
+  // Check if results are valid
+  if (!results || results.length === 0) {
+    console.warn("No photos found for the given query.");
+    resultsContainer.innerHTML = "<p>No photos found for the given query.</p>";
+    return;
   }
 
-  console.log(`Displaying ${results.length} photo(s)...`);
-  results.forEach(photo => {
-      console.log("Processing photo:", photo);
-
-      const photoElement = document.createElement("div");
-      photoElement.className = "photo";
-
+  // Loop through results and display each photo
+  results.forEach(result => {
+    if (result.url) {
+      // Create an image element
       const img = document.createElement("img");
-      img.src = photo.url;  // Use pre-signed URL
-      img.alt = "Photo";
-      img.className = "photo-img";
+      img.src = result.url; // Use the pre-signed URL for the image
+      img.alt = "Search Result";
+      img.style.margin = "10px";
+      img.style.maxWidth = "200px";
+      img.style.maxHeight = "200px";
 
-      const labels = document.createElement("p");
-      labels.innerText = `Labels: ${photo.labels.join(", ")}`;
+      // Create a label container
+      const labelContainer = document.createElement("div");
+      labelContainer.innerText = `Labels: ${result.labels.join(", ")}`;
+      labelContainer.style.fontSize = "14px";
 
-      photoElement.appendChild(img);
-      photoElement.appendChild(labels);
-      resultsContainer.appendChild(photoElement);
+      // Create a wrapper for the image and labels
+      const wrapper = document.createElement("div");
+      wrapper.style.border = "1px solid #ccc";
+      wrapper.style.padding = "10px";
+      wrapper.style.marginBottom = "10px";
+      wrapper.appendChild(img);
+      wrapper.appendChild(labelContainer);
+
+      // Append the wrapper to the results container
+      resultsContainer.appendChild(wrapper);
+    } else {
+      console.warn("Result does not contain a valid URL:", result);
+    }
   });
 }
 
