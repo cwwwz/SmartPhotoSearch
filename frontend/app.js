@@ -13,6 +13,7 @@ async function searchPhotos(query) {
     }
 
     const params = { q: query };
+    console.log("Params being sent:", params);
     const additionalParams = {};
     const response = await apigClient.searchGet(params, null, additionalParams);
 
@@ -26,35 +27,34 @@ async function searchPhotos(query) {
   }
 }
 
-// Function to display search results
 function displaySearchResults(results) {
   const resultsContainer = document.getElementById("results");
   resultsContainer.innerHTML = ""; // Clear previous results
 
-  if (!results || results.length === 0) {
-    console.warn("No photos found for the given query.");
-    resultsContainer.innerHTML = "<p>No photos found for the query.</p>";
-    return;
+  if (results.length === 0) {
+      console.warn("No photos found for the given query.");
+      resultsContainer.innerHTML = "<p>No photos found for the query.</p>";
+      return;
   }
 
   console.log(`Displaying ${results.length} photo(s)...`);
   results.forEach(photo => {
-    console.log("Processing photo:", photo);
+      console.log("Processing photo:", photo);
 
-    const photoElement = document.createElement("div");
-    photoElement.className = "photo";
+      const photoElement = document.createElement("div");
+      photoElement.className = "photo";
 
-    const img = document.createElement("img");
-    img.src = photo.url;
-    img.alt = "Photo";
-    img.className = "photo-img";
+      const img = document.createElement("img");
+      img.src = photo.url;  // Use pre-signed URL
+      img.alt = "Photo";
+      img.className = "photo-img";
 
-    const labels = document.createElement("p");
-    labels.innerText = `Labels: ${photo.labels.join(", ")}`;
+      const labels = document.createElement("p");
+      labels.innerText = `Labels: ${photo.labels.join(", ")}`;
 
-    photoElement.appendChild(img);
-    photoElement.appendChild(labels);
-    resultsContainer.appendChild(photoElement);
+      photoElement.appendChild(img);
+      photoElement.appendChild(labels);
+      resultsContainer.appendChild(photoElement);
   });
 }
 
