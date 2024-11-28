@@ -20,45 +20,73 @@ REGION = "us-east-1"
 lex_client = boto3.client("lexv2-runtime", region_name=REGION)
 s3_client = boto3.client("s3")
 
+import json
+import logging
+import boto3
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
 def lambda_handler(event, context):
     codepipeline = boto3.client('codepipeline')
-    logger.debug("Received event: %s", json.dumps(event))
     
-    # Extract the query parameter directly
-    query = event.get("q")
+    try:
+        logger.debug("Received event: %s", json.dumps(event))
+        
+        # Extract the CodePipeline job ID
+        job_id = event.get('CodePipeline.job', {}).get('id')
+        if not job_id:
+            raise ValueError("Missing CodePipeline job ID in the event.")
 
-    # Validate the query parameter
-    if not query:
-        logger.error("No search query provided in request.")
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "No search query provided."})
-        }
+        # Extract the query parameter directly
+        query = event.get("q")
 
-    logger.info("Search query: %s", query)
+        # Validate the query parameter
+        if not query:
+            logger.error("No search query provided in request.")
+            raise ValueError("No search query provided.")
 
-    # Step 1: Disambiguate query using Lex
-    labels = get_labels_from_lex(query)
-    if not labels:
-        logger.info("No labels found from Lex for query: %s", query)
+        logger.info("Search query: %s", query)
+
+        # Step 1: Disambiguate query using Lex
+        labels = get_labels_from_lex(query)
+        if not labels:
+            logger.info("No labels found from Lex for query: %s", query)
+            codepipeline.put_job_success_result(jobId=job_id)
+            return {
+                "statusCode": 200,
+                "body": json.dumps({"results": []})  # Return empty array if no keywords found
+            }
+
+        logger.info("Extracted labels from Lex: %s", labels)
+
+        # Step 2: Search for photos in OpenSearch
+        search_results = search_photos_in_opensearch(labels)
+        logger.info("Search results: %s", search_results)
+
+        # Notify CodePipeline of success
+        codepipeline.put_job_success_result(jobId=job_id)
+        
         return {
             "statusCode": 200,
-            "body": json.dumps({"results": []})  # Return empty array if no keywords found
+            "body": json.dumps({"results": search_results})  # Return search results
         }
 
-    logger.info("Extracted labels from Lex: %s", labels)
-
-    # Step 2: Search for photos in OpenSearch
-    search_results = search_photos_in_opensearch(labels)
-    logger.info("Search results: %s", search_results)
-
-    job_id = event['CodePipeline.job']['id']
-    codepipeline.put_job_success_result(jobId=job_id)
-    
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"results": search_results})  # Return search results
-    }
+    except Exception as e:
+        logger.error("Error processing CodePipeline job: %s", str(e), exc_info=True)
+        if 'CodePipeline.job' in event:
+            job_id = event['CodePipeline.job']['id']
+            codepipeline.put_job_failure_result(
+                jobId=job_id,
+                failureDetails={
+                    'type': 'JobFailed',
+                    'message': str(e)
+                }
+            )
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
 
 
 def get_labels_from_lex(query):
