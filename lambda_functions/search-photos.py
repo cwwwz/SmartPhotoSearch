@@ -20,23 +20,14 @@ REGION = "us-east-1"
 lex_client = boto3.client("lexv2-runtime", region_name=REGION)
 s3_client = boto3.client("s3")
 
-import json
-import logging
-import boto3
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
 def lambda_handler(event, context):
     codepipeline = boto3.client('codepipeline')
     
     try:
         logger.debug("Received event: %s", json.dumps(event))
         
-        # Extract the CodePipeline job ID
+        # Extract the CodePipeline job ID (optional)
         job_id = event.get('CodePipeline.job', {}).get('id')
-        if not job_id:
-            raise ValueError("Missing CodePipeline job ID in the event.")
 
         # Extract the query parameter directly
         query = event.get("q")
@@ -44,7 +35,10 @@ def lambda_handler(event, context):
         # Validate the query parameter
         if not query:
             logger.error("No search query provided in request.")
-            raise ValueError("No search query provided.")
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"error": "No search query provided."})
+            }
 
         logger.info("Search query: %s", query)
 
@@ -52,7 +46,8 @@ def lambda_handler(event, context):
         labels = get_labels_from_lex(query)
         if not labels:
             logger.info("No labels found from Lex for query: %s", query)
-            codepipeline.put_job_success_result(jobId=job_id)
+            if job_id:
+                codepipeline.put_job_success_result(jobId=job_id)
             return {
                 "statusCode": 200,
                 "body": json.dumps({"results": []})  # Return empty array if no keywords found
@@ -64,8 +59,9 @@ def lambda_handler(event, context):
         search_results = search_photos_in_opensearch(labels)
         logger.info("Search results: %s", search_results)
 
-        # Notify CodePipeline of success
-        codepipeline.put_job_success_result(jobId=job_id)
+        # Notify CodePipeline of success (if applicable)
+        if job_id:
+            codepipeline.put_job_success_result(jobId=job_id)
         
         return {
             "statusCode": 200,
@@ -74,8 +70,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
         logger.error("Error processing CodePipeline job: %s", str(e), exc_info=True)
-        if 'CodePipeline.job' in event:
-            job_id = event['CodePipeline.job']['id']
+        if job_id:
             codepipeline.put_job_failure_result(
                 jobId=job_id,
                 failureDetails={
@@ -87,7 +82,6 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"error": str(e)})
         }
-
 
 def get_labels_from_lex(query):
     """
@@ -151,8 +145,8 @@ def search_photos_in_opensearch(labels):
     try:
         # Perform the OpenSearch query
         response = requests.post(
-            f"{OPENSEARCH_ENDPOINT}/photos/_search",
-            auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
+            f"{endpoint}/photos/_search",
+            auth=(username, password),
             headers={"Content-Type": "application/json"},
             json=search_body
         )

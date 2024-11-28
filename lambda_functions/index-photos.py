@@ -61,8 +61,8 @@ def lambda_handler(event, context):
 
         # Step 5: Index metadata into OpenSearch
         response = requests.post(
-            OPENSEARCH_ENDPOINT,
-            auth=(OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD), 
+            endpoint,
+            auth=(username, password), 
             headers={"Content-Type": "application/json"},
             json=photo_metadata
         )
