@@ -2,17 +2,17 @@ import json
 import logging
 import requests
 import boto3
+import os
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-# Constants
-OPENSEARCH_ENDPOINT = ""
-OPENSEARCH_USERNAME = ""
-OPENSEARCH_PASSWORD = ""
+username = os.getenv("OPENSEARCH_USERNAME")
+password = os.getenv("OPENSEARCH_PASSWORD")
+endpoint = os.getenv("OPENSEARCH_ENDPOINT")
 
-LEX_BOT_ID = "" 
-LEX_BOT_ALIAS_ID = ""  
+LEX_BOT_ID = "UCAEGQJIAF"  
+LEX_BOT_ALIAS_ID = "TSTALIASID" 
 LEX_LOCALE_ID = "en_US"  
 REGION = "us-east-1"
 

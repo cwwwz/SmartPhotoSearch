@@ -2,15 +2,15 @@ import json
 import boto3
 import requests
 from datetime import datetime
+import os
 
 # Initialize AWS clients
 rekognition = boto3.client('rekognition')
 s3 = boto3.client('s3')
 
-# OpenSearch domain
-OPENSEARCH_ENDPOINT = ""
-OPENSEARCH_USERNAME = ""
-OPENSEARCH_PASSWORD = ""
+username = os.getenv("OPENSEARCH_USERNAME")
+password = os.getenv("OPENSEARCH_PASSWORD")
+endpoint = os.getenv("OPENSEARCH_ENDPOINT")
 
 def lambda_handler(event, context):
     codepipeline = boto3.client('codepipeline')
