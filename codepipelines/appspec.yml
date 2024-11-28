@@ -16,4 +16,3 @@ artifacts:
     - appspec.yml
     - lambda_functions/index-photos.zip
     - lambda_functions/search-photos.zip
-
