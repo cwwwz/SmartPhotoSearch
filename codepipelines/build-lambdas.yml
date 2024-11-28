@@ -8,10 +8,26 @@ phases:
     commands:
       - echo "Zipping Lambda functions"
       - cd lambda_functions
-      - zip -r index-photos.zip index-photos.py
-      - zip -r search-photos.zip search-photos.py
+      - zip -r ../index-photos.zip index-photos.py
+      - zip -r ../search-photos.zip search-photos.py
+      - cd ..
       - echo "Lambda functions zipped successfully"
+  post_build:
+    commands:
+      - echo "Generating appspec.yml"
+      - |
+        cat <<EOT >> appspec.yml
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::Lambda
+              Properties:
+                Name: index-photos
+                Alias: live
+        EOT
+      - echo "Appspec file created"
 artifacts:
   files:
-    - lambda_functions/index-photos.zip
-    - lambda_functions/search-photos.zip
+    - appspec.yml
+    - index-photos.zip
+    - search-photos.zip
