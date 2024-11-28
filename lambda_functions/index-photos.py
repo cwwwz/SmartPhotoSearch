@@ -8,22 +8,16 @@ import os
 rekognition = boto3.client('rekognition')
 s3 = boto3.client('s3')
 
+# Load environment variables for OpenSearch
 username = os.getenv("OPENSEARCH_USERNAME")
 password = os.getenv("OPENSEARCH_PASSWORD")
 endpoint = os.getenv("OPENSEARCH_ENDPOINT")
 
 def lambda_handler(event, context):
-    codepipeline = boto3.client('codepipeline')
-    s3 = boto3.client('s3')
-    rekognition = boto3.client('rekognition')
-    
     try:
         # Log the incoming event for debugging
         print(f"Received event: {json.dumps(event)}")
         
-        # Extract CodePipeline job ID if present
-        job_id = event.get('CodePipeline.job', {}).get('id')
-
         # Step 1: Extract bucket and photo details from the S3 event
         s3_details = event['Records'][0]['s3']
         bucket = s3_details['bucket']['name']
@@ -61,32 +55,19 @@ def lambda_handler(event, context):
 
         # Step 5: Index metadata into OpenSearch
         response = requests.post(
-            endpoint,
+            f"{endpoint}/photos/_doc/",
             auth=(username, password), 
             headers={"Content-Type": "application/json"},
             json=photo_metadata
         )
         print(f"OpenSearch Response: {response.status_code}, {response.text}")
         
-        # Notify CodePipeline of success if OpenSearch indexing succeeds
+        # Return success or failure based on the OpenSearch response
         if response.status_code in (200, 201):
-            if job_id:
-                codepipeline.put_job_success_result(jobId=job_id)
             return {"statusCode": 200, "body": "Photo metadata successfully indexed."}
         else:
             raise Exception(f"Failed to index metadata: {response.text}")
 
     except Exception as e:
         print(f"Error: {e}")
-        
-        # Notify CodePipeline of failure if job ID is present
-        if 'CodePipeline.job' in event:
-            job_id = event['CodePipeline.job']['id']
-            codepipeline.put_job_failure_result(
-                jobId=job_id,
-                failureDetails={
-                    'type': 'JobFailed',
-                    'message': str(e)
-                }
-            )
         return {"statusCode": 500, "body": str(e)}
