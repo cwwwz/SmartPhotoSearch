@@ -13,6 +13,7 @@ OPENSEARCH_USERNAME = ""
 OPENSEARCH_PASSWORD = ""
 
 def lambda_handler(event, context):
+    codepipeline = boto3.client('codepipeline')
     try:
         # Log the incoming event for debugging
         print(f"Received event: {json.dumps(event)}")
@@ -60,6 +61,9 @@ def lambda_handler(event, context):
             json=photo_metadata
         )
         print(f"OpenSearch Response: {response.status_code}, {response.text}")
+        
+        job_id = event['CodePipeline.job']['id']
+        codepipeline.put_job_success_result(jobId=job_id)
 
         # Return success or error based on the OpenSearch response
         if response.status_code == 200 or response.status_code == 201:
@@ -67,7 +71,7 @@ def lambda_handler(event, context):
         else:
             print(f"Failed to index metadata: {response.text}")
             return {"statusCode": response.status_code, "body": response.text}
-
+        
     except Exception as e:
         print(f"Error: {e}")
         return {"statusCode": 500, "body": str(e)}

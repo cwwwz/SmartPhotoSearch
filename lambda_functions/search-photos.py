@@ -21,6 +21,7 @@ lex_client = boto3.client("lexv2-runtime", region_name=REGION)
 s3_client = boto3.client("s3")
 
 def lambda_handler(event, context):
+    codepipeline = boto3.client('codepipeline')
     logger.debug("Received event: %s", json.dumps(event))
     
     # Extract the query parameter directly
@@ -51,6 +52,9 @@ def lambda_handler(event, context):
     search_results = search_photos_in_opensearch(labels)
     logger.info("Search results: %s", search_results)
 
+    job_id = event['CodePipeline.job']['id']
+    codepipeline.put_job_success_result(jobId=job_id)
+    
     return {
         "statusCode": 200,
         "body": json.dumps({"results": search_results})  # Return search results
