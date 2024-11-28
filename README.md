@@ -1,4 +1,4 @@
-# PhotoSearchApp
+# Smart Photo Search App
 
 **PhotoSearchApp** is a serverless application designed to enable users to upload photos, perform keyword-based searches, and retrieve relevant images based on labels detected through AI-powered processing. This project integrates various AWS services to provide a scalable, efficient, and automated solution for photo storage, indexing, and search.
 
