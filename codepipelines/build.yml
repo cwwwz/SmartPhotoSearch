@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "No dependencies to install, skipping install phase"
+  build:
+    commands:
+      - echo "Zipping Lambda functions"
+      - cd lambda_functions
+      - zip -r index-photos.zip index-photos.py
+      - zip -r search-photos.zip search-photos.py
+      - echo "Lambda functions zipped successfully"
+artifacts:
+  files:
+    - lambda_functions/index-photos.zip
+    - lambda_functions/search-photos.zip
