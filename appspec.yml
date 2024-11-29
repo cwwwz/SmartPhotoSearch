@@ -5,3 +5,4 @@ Resources:
       Properties:
         Name: index-photos
         Alias: live
+        CurrentVersion: 1
