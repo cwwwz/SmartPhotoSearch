@@ -11,9 +11,15 @@ phases:
       - zip -r index-photos.zip index-photos.py
       - zip -r search-photos.zip search-photos.py
       - echo "Lambda functions zipped successfully"
+  post_build:
+    commands:
+      - echo "Checking artifact contents:"
+      - ls -R
+
 artifacts:
   files:
-    - ../appspec.yml
+    - appspec.yml
     - lambda_functions/index-photos.zip
     - lambda_functions/search-photos.zip
+
 
