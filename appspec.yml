@@ -1,7 +1,7 @@
 version: 0.0
 Resources:
   - TargetService:
-      Type: AWSLambda
+      Type: AWS::Lambda::Function
       Properties:
         Name: index-photos
         Alias: live
