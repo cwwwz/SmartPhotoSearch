@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to provision resources for a photo album web application.
+
+Resources:
+  # S3 Bucket for frontend hosting
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "frontend-photo-album-bucket"
+      WebsiteConfiguration:
+        IndexDocument: "index.html"
+      AccessControl: PublicRead
+    DeletionPolicy: Retain
+
+  # S3 Bucket for photo storage
+  PhotoStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "photo-storage-bucket"
+    DeletionPolicy: Retain
+
+  # Lambda function for indexing photos
+  IndexPhotosLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "index-photos"
+      Handler: "index.handler"
+      Runtime: python3.9
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: "your-lambda-code-bucket"
+        S3Key: "index-photos.zip"
+      Environment:
+        Variables:
+          PHOTO_BUCKET: !Ref PhotoStorageBucket
+
+  # Lambda function for searching photos
+  SearchPhotosLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: "search-photos"
+      Handler: "search.handler"
+      Runtime: python3.9
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: "your-lambda-code-bucket"
+        S3Key: "search-photos.zip"
+      Environment:
+        Variables:
+          PHOTO_BUCKET: !Ref PhotoStorageBucket
+
+  # IAM role for Lambda functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "LambdaExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "LambdaS3Policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:*"
+                Resource: "*"
+
+  # API Gateway
+  APIGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "PhotoAlbumAPI"
+
+  # API Gateway Resource - /photos
+  APIResourcePhotos:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref APIGateway
+      ParentId: !GetAtt APIGateway.RootResourceId
+      PathPart: "photos"
+
+  # API Gateway Method - PUT /photos
+  APIMethodPutPhotos:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref APIGateway
+      ResourceId: !Ref APIResourcePhotos
+      HttpMethod: "PUT"
+      AuthorizationType: "NONE"
+      Integration:
+        Type: "AWS_PROXY"
+        IntegrationHttpMethod: "POST"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:s3:path/${PhotoStorageBucket}/photos"
+
+  # API Gateway Resource - /search
+  APIResourceSearch:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref APIGateway
+      ParentId: !GetAtt APIGateway.RootResourceId
+      PathPart: "search"
+
+  # API Gateway Method - GET /search
+  APIMethodSearchPhotos:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref APIGateway
+      ResourceId: !Ref APIResourceSearch
+      HttpMethod: "GET"
+      AuthorizationType: "NONE"
+      Integration:
+        Type: "AWS_PROXY"
+        IntegrationHttpMethod: "POST"
+        Uri: !Sub "arn:aws:lambda:${AWS::Region}:lambda:path/2015-03-31/functions/${SearchPhotosLambda.Arn}/invocations"
+
+Outputs:
+  FrontendURL:
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Description: "Public URL for the photo album frontend."
