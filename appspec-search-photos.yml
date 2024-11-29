@@ -3,12 +3,6 @@ Resources:
   - TargetService:
       Type: AWS::Lambda
       Properties:
-        Name: index-photos
-        Alias: live
-        CurrentVersion: 1
-  - TargetService:
-      Type: AWS::Lambda
-      Properties:
         Name: search-photos
         Alias: live
         CurrentVersion: 1
