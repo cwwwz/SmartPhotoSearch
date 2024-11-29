@@ -11,11 +11,6 @@ phases:
       - zip -r index-photos.zip index-photos.py
       - zip -r search-photos.zip search-photos.py
       - echo "Lambda functions zipped successfully"
-  post_build:
-    commands:
-      - echo "Generating AppSpec files"
-      - echo "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::Lambda\n      Properties:\n        Name: index-photos\n        Alias: live\n        CurrentVersion: 1" > appspec-index-photos.yml
-      - echo "version: 0.0\nResources:\n  - TargetService:\n      Type: AWS::Lambda\n      Properties:\n        Name: search-photos\n        Alias: live\n        CurrentVersion: 1" > appspec-search-photos.yml
 
 artifacts:
   files:
