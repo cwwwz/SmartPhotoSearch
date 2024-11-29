@@ -13,7 +13,7 @@ phases:
 
 artifacts:
   files:
-    - appspec-index-photos.yml
+    - appspec.yml
     - lambda_functions/index-photos.zip
     # - appspec-search-photos.yml
     # - lambda_functions/search-photos.zip
