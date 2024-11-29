@@ -13,7 +13,7 @@ phases:
       - echo "Lambda functions zipped successfully"
 artifacts:
   files:
-    - appspec.yml
+    - ../appspec.yml
     - lambda_functions/index-photos.zip
     - lambda_functions/search-photos.zip
 
