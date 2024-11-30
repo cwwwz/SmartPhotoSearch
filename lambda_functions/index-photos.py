@@ -4,33 +4,27 @@ import requests
 import os
 from datetime import datetime
 
-# Initialize AWS clients
 rekognition = boto3.client('rekognition')
 s3 = boto3.client('s3')
 
-# Load environment variables for OpenSearch
 username = os.getenv("OPENSEARCH_USERNAME")
 password = os.getenv("OPENSEARCH_PASSWORD")
 endpoint = os.getenv("OPENSEARCH_ENDPOINT")
 
 def lambda_handler(event, context):
     try:
-        # Log the incoming event for debugging
         print(f"Received event: {json.dumps(event)}")
-        
-        # Step 1: Extract bucket and photo details from the S3 event
+
         s3_details = event['Records'][0]['s3']
         bucket = s3_details['bucket']['name']
         photo = s3_details['object']['key']
         print(f"Processing file: {photo} from bucket: {bucket}")
 
-        # Step 2: Fetch custom metadata from S3
         metadata_response = s3.head_object(Bucket=bucket, Key=photo)
         custom_labels = metadata_response.get('Metadata', {}).get('customlabels', '').split(',')
         custom_labels = [label.strip() for label in custom_labels if label]
         print(f"Custom Labels from metadata: {custom_labels}")
 
-        # Step 3: Use Rekognition to detect labels
         rekognition_response = rekognition.detect_labels(
             Image={'S3Object': {'Bucket': bucket, 'Name': photo}},
             MaxLabels=10,
@@ -39,12 +33,10 @@ def lambda_handler(event, context):
         rekognition_labels = [label['Name'] for label in rekognition_response['Labels']]
         print(f"Rekognition Labels: {rekognition_labels}")
 
-        # Combine Rekognition labels and custom labels
         combined_labels = custom_labels + rekognition_labels
         deduplicated_labels = list(set([label.lower() for label in combined_labels]))
         print(f"Final Deduplicated Labels for {photo}: {deduplicated_labels}")
 
-        # Step 4: Prepare metadata for indexing
         photo_metadata = {
             "objectKey": photo,
             "bucket": bucket,
@@ -53,7 +45,6 @@ def lambda_handler(event, context):
         }
         print(f"Metadata to index: {photo_metadata}")
 
-        # Step 5: Index metadata into OpenSearch
         response = requests.post(
             f"{endpoint}/photos/_doc/",
             auth=(username, password), 
@@ -62,7 +53,6 @@ def lambda_handler(event, context):
         )
         print(f"OpenSearch Response: {response.status_code}, {response.text}")
         
-        # Return success or failure based on the OpenSearch response
         if response.status_code in (200, 201):
             return {"statusCode": 200, "body": "Photo metadata successfully indexed."}
         else:
