@@ -8,9 +8,11 @@ phases:
   build:
     commands:
       - echo "Zipping index-photos Lambda function..."
-      - cd lambda_functions && zip -r ../index-photos.zip lambda_function.py && cd ..
-      - echo "Zipping search-photos Lambda function..."
-      - cd lambda_functions && zip -r ../search-photos.zip lambda_function.py && cd ..
+      - cd lambda_functions
+      - zip -r index-photos.zip index-photos.py
+      - zip -r search-photos.zip search-photos.py
+      - cd ..
+      - echo "Lambda functions zipped successfully"
 
   post_build:
     commands:
