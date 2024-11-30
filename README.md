@@ -4,6 +4,13 @@
 
 ---
 
+## Demo Screenshots
+<img width="1504" alt="Screenshot 2024-11-29 at 12 50 29 AM" src="https://github.com/user-attachments/assets/94033051-2d09-4e10-9088-1101b792aa78">
+
+<img width="1495" alt="Screenshot 2024-11-29 at 12 50 08 AM" src="https://github.com/user-attachments/assets/34f47893-9e5e-47a3-8d8e-479a5010c539">
+
+---
+
 ## Features
 
 - **Photo Upload**: Users can upload photos to an S3 bucket.
