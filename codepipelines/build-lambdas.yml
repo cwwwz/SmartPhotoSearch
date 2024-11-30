@@ -2,26 +2,27 @@ version: 0.2
 
 phases:
   install:
-    runtime-versions:
-      python: 3.11
+    commands:
+      - echo "No dependencies to install"
 
   build:
     commands:
-      - echo "Zipping index-photos Lambda function..."
+      - echo "Zipping Lambda functions with lambda_function.py"
       - cd lambda_functions
-      - zip -r index-photos.zip lambda_function.py
-      - zip -r search-photos.zip lambda_function.py
+      - zip -r ../index-photos.zip lambda_function.py
+      - zip -r ../search-photos.zip lambda_function.py
       - cd ..
       - echo "Lambda functions zipped successfully"
 
   post_build:
     commands:
-      - echo "Updating index-photos Lambda function..."
-      - aws lambda update-function-code --function-name index-photos --zip-file fileb://lambda_functions/index-photos.zip
+      - echo "Deploying index-photos Lambda function..."
+      - aws lambda update-function-code --function-name index-photos --zip-file fileb://index-photos.zip
       - aws lambda update-function-configuration --function-name index-photos --handler lambda_function.lambda_handler
-      - echo "Updating search-photos Lambda function..."
-      - aws lambda update-function-code --function-name search-photos --zip-file fileb://lambda_functions/search-photos.zip
+      - echo "Deploying search-photos Lambda function..."
+      - aws lambda update-function-code --function-name search-photos --zip-file fileb://search-photos.zip
       - aws lambda update-function-configuration --function-name search-photos --handler lambda_function.lambda_handler
+      - echo "Lambda functions updated successfully"
 
 artifacts:
   files:
