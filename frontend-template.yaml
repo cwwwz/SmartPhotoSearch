@@ -1,11 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation template to provision resources for a photo album web application.
+Description: Debugging template for S3 bucket issues.
 
 Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AWS::StackName}-frontend-photo-album-bucket"
       ObjectOwnership: BucketOwnerEnforced
       WebsiteConfiguration:
         IndexDocument: "index.html"
@@ -15,18 +14,18 @@ Resources:
               - "*"
             AllowedMethods:
               - GET
-              - PUT
-              - POST
-              - DELETE
             AllowedOrigins:
               - "*"
-    DeletionPolicy: Retain
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
 
-  # Frontend Bucket Policy
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Resource: !Join ["", ["arn:aws:s3:::", !Ref FrontendBucket, "/*"]]
+      Bucket: !Ref FrontendBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -34,7 +33,7 @@ Resources:
             Effect: Allow
             Principal: "*"
             Action: "s3:GetObject"
-            Resource: !Sub "arn:aws:s3:::${AWS::StackName}-frontend-photo-album-bucket/*"
+            Resource: !Sub "arn:aws:s3:::${FrontendBucket}/*"
 
 Outputs:
   FrontendURL:
