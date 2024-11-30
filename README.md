@@ -16,7 +16,7 @@
 - **Photo Upload**: Users can upload photos to an S3 bucket.
 - **AI Label Detection**: AWS Rekognition analyzes uploaded photos to detect labels.
 - **Custom Metadata**: Users can optionally provide custom labels when uploading photos.
-- **Photo Search**: Users can search for photos by keywords. The search combines user-provided labels and Rekognition-detected labels to match results.
+- **Photo Search**: Users can search for photos by keywords (up to 2 keywords). The search combines user-provided labels and Rekognition-detected labels to match results.
 - **Search Results**: Photos matching the search criteria are retrieved from the S3 bucket and displayed.
 
 ---
