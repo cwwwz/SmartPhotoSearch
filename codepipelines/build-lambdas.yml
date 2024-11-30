@@ -2,6 +2,8 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      python: 3.11
     commands:
       - echo "No dependencies to install"
 
@@ -26,5 +28,5 @@ phases:
 
 artifacts:
   files:
-    - index-photos.zip
-    - search-photos.zip
+    - lambda_functions/index-photos.zip
+    - lambda_functions/search-photos.zip
