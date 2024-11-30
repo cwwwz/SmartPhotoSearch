@@ -3,27 +3,30 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.11
+      python: 3.13
+    commands:
+      - echo "Installing dependencies for index-photos..."
+      - pip install -r lambda_functions/requirements.txt -t lambda_functions/index-photos/
+      - echo "Installing dependencies for search-photos..."
+      - pip install -r lambda_functions/requirements.txt -t lambda_functions/search-photos/
 
   build:
     commands:
-      - echo "Zipping Lambda functions"
-      - cd lambda_functions
-      - zip -r index-photos.zip index-photos.py
-      - zip -r search-photos.zip search-photos.py
-      - cd ..
-      - echo "Lambda functions zipped successfully"
+      - echo "Zipping index-photos Lambda function..."
+      - cd lambda_functions && zip -r ../index-photos.zip index-photos.py && cd ..
+      - echo "Zipping search-photos Lambda function..."
+      - cd lambda_functions && zip -r ../search-photos.zip search-photos.py && cd ..
 
   post_build:
     commands:
-      - echo "Deploying index-photos Lambda function..."
-      - aws lambda update-function-code --function-name index-photos --zip-file fileb://lambda_functions/index-photos.zip
-      - echo "Deploying search-photos Lambda function..."
-      - aws lambda update-function-code --function-name search-photos --zip-file fileb://lambda_functions/search-photos.zip
-      - echo "Lambda functions updated successfully"
+      - echo "Updating index-photos Lambda function..."
+      - aws lambda update-function-code --function-name index-photos --zip-file fileb://index-photos.zip
+      - aws lambda update-function-configuration --function-name index-photos --handler index-photos.lambda_handler
+      - echo "Updating search-photos Lambda function..."
+      - aws lambda update-function-code --function-name search-photos --zip-file fileb://search-photos.zip
+      - aws lambda update-function-configuration --function-name search-photos --handler search-photos.lambda_handler
 
 artifacts:
   files:
-    - lambda_functions/index-photos.zip
-    - lambda_functions/search-photos.zip
-
+    - index-photos.zip
+    - search-photos.zip
