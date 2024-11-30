@@ -18,7 +18,6 @@ Resources:
               - PUT
               - POST
               - DELETE
-              - HEAD
             AllowedOrigins:
               - "*"
     DeletionPolicy: Retain
@@ -27,7 +26,7 @@ Resources:
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref FrontendBucket
+      Resource: !Join ["", ["arn:aws:s3:::", !Ref FrontendBucket, "/*"]]
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
