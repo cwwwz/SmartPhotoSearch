@@ -9,8 +9,8 @@ phases:
     commands:
       - echo "Zipping index-photos Lambda function..."
       - cd lambda_functions
-      - zip -r index-photos.zip index-photos.py
-      - zip -r search-photos.zip search-photos.py
+      - zip -r index-photos.zip lambda_function.py
+      - zip -r search-photos.zip lambda_function.py
       - cd ..
       - echo "Lambda functions zipped successfully"
 
