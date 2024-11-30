@@ -23,5 +23,5 @@ phases:
 
 artifacts:
   files:
-    - index-photos.zip
-    - search-photos.zip
+    - lambda-functions/index-photos.zip
+    - lambda-functions/search-photos.zip
