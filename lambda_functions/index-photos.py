@@ -1,8 +1,8 @@
 import json
 import boto3
 import requests
-from datetime import datetime
 import os
+from datetime import datetime
 
 # Initialize AWS clients
 rekognition = boto3.client('rekognition')
